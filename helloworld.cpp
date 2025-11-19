@@ -41,7 +41,9 @@ for(int j = 0; j < 1000; j++) {
         electrons[k].updateVelocity(timestep); 
          
             if(electrons[k].position <= -5 || electrons[k].position >= 6) {
+
                 std:: cout << k << " th electron" << std :: endl << "Finished at:  " << j * timestep << std::endl ;
+                electrons[k] = electron();
             }
     }
 

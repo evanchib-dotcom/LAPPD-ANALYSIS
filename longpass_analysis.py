@@ -76,7 +76,7 @@ def residualcalcman(file_path):
                                     evtgroup2.append(linearized_index_ns)
                                 if 23 < lcns[i][j] < 31:  # 31 is coincident PMT trigger
                                     evtgroup3.append(linearized_index_ns)
-                            if lcns[i][j]  in [0, 7]:
+                            if lcns[i][j]  in [0, 7]: ## center pixels - account for their indivdual triggers
                                 center_event07.append(linearized_index_ns)
                             if lcns[i][j] == 8: 
                                 center_event8.append(linearized_index_ns)
@@ -146,7 +146,7 @@ def residualcalcman(file_path):
                             threshold = 0.6 * (ak.max(waveforms[i][j][10:-10]) - ped) + ped
                             linearized_index = linear_interpolation(xpt_below, y_below, xpt_above, y_above, threshold)
                             linearized_index_ns =  (linearized_index + 10) * 0.2 ## account for shift 
-                            if lcns[i][j] != 25:
+                            if lcns[i][j] != 25: # only center pixel is channel 25
                                 if lcns[i][j] < 8:
                                     evtgroup0.append(linearized_index_ns)
                                 if 7 < lcns[i][j] < 16:
@@ -199,20 +199,20 @@ def residualcalcman(file_path):
 
 
 
+## using only labb data
+residuals_scint_cherenkov = residualcalcman(paths_scint[0])[0] + residualcalcman(paths_scint[1])[0] + residualcalcman(paths_scint[2])[0] + residualcalcman(paths_scint[3])[0] 
+residuals_scint_scintillator = residualcalcman(paths_scint[0])[1] + residualcalcman(paths_scint[1])[1] + residualcalcman(paths_scint[2])[1] + residualcalcman(paths_scint[3])[1]
 
-residuals_scint_scintillator = residualcalcman(paths_scint[0])[0] + residualcalcman(paths_scint[1])[0] + residualcalcman(paths_scint[2])[0] + residualcalcman(paths_scint[3])[0] 
-residuals_scint_cherenkov = residualcalcman(paths_scint[0])[1] + residualcalcman(paths_scint[1])[1] + residualcalcman(paths_scint[2])[1] + residualcalcman(paths_scint[3])[1]
-# Plot residual histograms for water and scint
 plt.figure(figsize=(8,6))
 
 bins = 200  
-range_min, range_max = -100, 10  #
+range_min, range_max = -100, 10  
 
 plt.hist(residuals_scint_scintillator, bins=bins, range=(range_min, range_max),
-         histtype='step', color='blue', label='scintillator', linewidth=1.5)
+         histtype='step', color='red', label='scintillator', linewidth=1.5)
 
 plt.hist(residuals_scint_cherenkov, bins=bins, range=(range_min, range_max),
-         histtype='step', color='red', label='cherenkov', linewidth=1.5)
+         histtype='step', color='blue', label='cherenkov', linewidth=1.5)
 
 plt.xlabel("Residual [ns]")
 plt.ylabel("Counts")
