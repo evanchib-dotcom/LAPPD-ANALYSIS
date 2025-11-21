@@ -82,7 +82,7 @@ def grouptogrid ( i, j, event):
         return lappd_1_nabove[event][11]
     if i == 6 and j  ==  1  :
         return lappd_1_nabove[event][12]
-    if i == 7 and j  ==  0  :
+    if i == 7 and j  ==  1  :
         return 0
   ##C  
     if i == 0 and j  ==  2  :
@@ -192,15 +192,6 @@ def grouptogrid ( i, j, event):
         return 0
 
 
-
-
-
-
-
-
-
-
-
 def constructgridperevent (event):
     grid = np.zeros((8, 8))
     for i in range(len(grid)):
@@ -208,4 +199,7 @@ def constructgridperevent (event):
             grid[i][j] = grouptogrid(i, j, event)
     return grid 
 
-print(constructgridperevent(345))
+nevents = 300
+for i in range(nevents):
+    eventgrid = np.zeros((nevents, 8, 8,))
+    eventgrid[i] = constructgridperevent(i)
