@@ -1,0 +1,111 @@
+
+
+
+
+
+
+
+
+
+import uproot
+import random
+import awkward as ak 
+import numpy as np
+import matplotlib.pyplot as plt
+
+file_path1 = "C:\\Users\\Evan\\Downloads\\lappd-158-water-beta-mask-500nm-lp-centered_lappd_1.root"
+file_path0 = "C:\\Users\\Evan\\Downloads\\lappd-158-water-beta-mask-500nm-lp-centered_lappd_0.root"
+
+n_tup = uproot.open(file_path0)
+output = n_tup['output;1']
+event_info = output.arrays(output.keys(),library = "ak")
+waveforms = event_info['waveforms']
+peaks =event_info['peaks'] 
+ped = event_info['pedestals'] 
+lcns =  event_info['lcns']
+n_abv_thresh = event_info['nsamples_above_threshold']
+times = event_info['times']
+print(times[0][4])
+print(peaks[0][4])
+plt.plot(waveforms[0][4])
+plt.show()
+
+
+
+###### if waveforms[0][4][i] > peaks[0][4]
+
+
+
+
+
+def residualscalc(file_path):
+    n_tup = uproot.open(file_path)
+    output = n_tup['output;1']
+    event_info = output.arrays(output.keys(),library = "ak")
+    waveforms = event_info['waveforms']
+    peaks =event_info['peaks'] 
+    ped = event_info['pedestals'] 
+    lcns =  event_info['lcns']
+    n_abv_thresh = event_info['nsamples_above_threshold']
+    times = event_info['times']
+    t_res = []
+    discard = []
+    n = 2
+    
+    def locate_groputrigger_time(i, j):
+        x = 0
+            
+        if  0 < lcns[i][j] < 8 :
+            return times[i][31]
+        if  7 < lcns[i][j] < 16 :
+            return times[i][32]
+        if  15 < lcns[i][j] < 24 :
+            return times[i][33]
+        if  23 < lcns[i][j] < 31 :
+            return times[i][34]
+        if lcns[i][j] in [32, 48, 64, 80]:
+            return times[i][j]
+            ped = ak.mean(waveforms[i][j][500:900])
+            wf = waveforms[i][j][10:-10]
+            amp = ak.max(wf - ped)
+            if amp > 60:
+                crossed = wf - ped > (0.6 * (ak.max(wf) - ped))
+                above = ak.where(crossed)[0]
+
+    for i in range(len(waveforms)):
+        discard_channel_per_event = []
+        t_res_event = []
+        for j in range(len(waveforms[i])):
+            wf = waveforms[i][j]
+            amp = peaks[i][j] - ped[i][j]
+            if (n_abv_thresh[i][j] > 2) &  (amp > 3) :
+                if not np.isnan(times[i][j]):
+                    residual = times[i][j] - locate_groputrigger_time(i,j)
+                    t_res_event.append(residual)
+                else: 
+                    print( lcns[i][j], " trigger at ", i,  " event  had NAN time", " in file  ", file_path)
+
+            else : 
+                discard_channel_per_event.append(j)
+
+        discard.append(discard_channel_per_event)
+        t_res.append(t_res_event) 
+
+        t_res_arr = ak.Array(t_res)
+        discard_arr = ak.Array(discard)
+    return t_res_arr
+
+
+res0Arr = residualscalc(file_path0)
+res1Arr = residualscalc(file_path1)
+ak.flatten(res0Arr)
+ak.flatten(res1Arr)
+
+
+
+plt.hist(ak.concatenate([ak.flatten(res0Arr), ak.flatten(res1Arr)]), bins = 100, range = (10, 100))
+plt.show()
+
+
+
+
